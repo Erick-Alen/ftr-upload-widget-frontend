@@ -1,4 +1,10 @@
-/** biome-ignore-all lint/suspicious/noUnknownAtRules: tailwind standard*/
+/** biome-ignore-all lint/suspicious/noUnknownAtRules: <explanation> */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@property --border-angle {
+  inherits: false;
+  initial-value: 0deg;
+  syntax: '<angle>';
+}

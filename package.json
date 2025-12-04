@@ -12,9 +12,12 @@
   },
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-progress": "^1.1.8",
     "lucide-react": "^0.555.0",
+    "motion": "^12.23.25",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-dropzone": "^14.3.8",
     "tailwind-merge": "^3.4.0",
     "tailwind-variants": "^3.2.2"
   },
