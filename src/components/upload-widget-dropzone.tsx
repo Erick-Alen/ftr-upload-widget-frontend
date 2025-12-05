@@ -1,11 +1,13 @@
 import { motion } from 'motion/react';
 import { useDropzone } from 'react-dropzone';
+import { usePendingUploads, useUploads } from '../store/uploads';
 import { CircularProgressBar } from './ui/circular-progress-bar';
 
 export function UploadWidgetDropzone() {
-  const isThereAnyPendindUpload = true;
-  const uploadGlobalPercentage = 66;
-
+  const { isThereAnyPendingUploads, globalPercentage } = usePendingUploads();
+  const addUploads = useUploads((store) => store.addUploads);
+  const uploadsAmountSize = useUploads((store) => store.uploads.size);
+  // const inProgressUploads = useUploads((store) => store.uploads);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: true,
     accept: {
@@ -13,7 +15,7 @@ export function UploadWidgetDropzone() {
       'image/png': [],
     },
     onDrop(acceptedFiles) {
-      console.log(acceptedFiles);
+      addUploads(acceptedFiles);
     },
   });
   return (
@@ -23,7 +25,7 @@ export function UploadWidgetDropzone() {
       }}
       className="flex flex-col gap-3 px-3"
       initial={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.3 }}
     >
       <div
         className="flex h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-zinc-700 border-dashed bg-black/20 p-5 text-zinc-400 transition-colors hover:border-zinc-600 data-[active=true]:border-indigo-500 data-[active=true]:bg-indigo-500/10"
@@ -32,14 +34,22 @@ export function UploadWidgetDropzone() {
       >
         <input type="file" {...getInputProps()} />
 
-        {isThereAnyPendindUpload ? (
+        {isThereAnyPendingUploads ? (
           <div className="flex flex-col items-center gap-2.5">
             <CircularProgressBar
-              progress={uploadGlobalPercentage}
+              progress={globalPercentage}
               size={56}
               strokeWidth={4}
             />
-            <span className="text-xs">Uploading 2 files...</span>
+            <span className="text-xs">
+              Uploading {uploadsAmountSize}
+              {/* {
+                Array.from(inProgressUploads.values()).filter(
+                  (upload) => upload.status === 'progress'
+                ).length
+              } */}{' '}
+              files...
+            </span>
           </div>
         ) : (
           <>
