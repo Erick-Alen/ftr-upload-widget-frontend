@@ -5,5 +5,12 @@
     "formatter": {
       "quoteStyle": "single"
     }
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noParameterAssign": "warn"
+      }
+    }
   }
 }

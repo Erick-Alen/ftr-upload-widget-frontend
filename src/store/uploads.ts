@@ -23,7 +23,6 @@ enableMapSet();
 
 export const useUploads = create<UploadState, [['zustand/immer', never]]>(
   immer((set, get) => {
-
     // utilitary function to update upload state
     function updateUpload(uploadId: string, uploadData: Partial<Upload>) {
       const upload = get().uploads.get(uploadId);
@@ -33,7 +32,7 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
         }
       });
     }
-    
+
     const processUpload = async (uploadId: string) => {
       const upload = get().uploads.get(uploadId);
       if (!upload) {
