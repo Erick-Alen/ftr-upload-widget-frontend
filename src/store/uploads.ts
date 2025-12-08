@@ -8,7 +8,7 @@ import { compressImage } from '../utils/compress-image';
 export type Upload = {
   file: File;
   name: string;
-  abortController: AbortController;
+  abortController?: AbortController;
   status: 'progress' | 'completed' | 'error' | 'canceled';
   uploadByteSize: number;
   originalByteSize: number;
@@ -20,6 +20,7 @@ type UploadState = {
   uploads: Map<string, Upload>;
   addUploads: (files: File[]) => void;
   cancelUpload: (uploadId: string) => void;
+  retryUpload: (uploadId: string) => void;
 };
 
 enableMapSet();
@@ -41,6 +42,15 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
       if (!upload) {
         return;
       }
+      const abortController = new AbortController();
+
+      updateUpload(uploadId, {
+        status: 'progress',
+        uploadByteSize: 0,
+        compressedByteSize: undefined,
+        remoteUrl: undefined,
+        abortController,
+      });
       try {
         const compressedFile = await compressImage({
           file: upload.file,
@@ -61,7 +71,7 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
             },
           },
           {
-            signal: upload.abortController.signal,
+            signal: abortController.signal,
           }
         );
         updateUpload(uploadId, {
@@ -83,7 +93,7 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
       if (!upload) {
         return;
       }
-      upload.abortController.abort();
+      upload.abortController?.abort();
       set((state) => {
         if (upload) {
           state.uploads.set(uploadId, {
@@ -100,7 +110,6 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
         const newUpload: Upload = {
           name: file.name,
           file,
-          abortController: new AbortController(),
           status: 'progress',
           originalByteSize: file.size,
           uploadByteSize: 0,
@@ -117,11 +126,16 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
       }
     };
 
+    const retryUpload = (uploadId: string) => {
+      processUpload(uploadId);
+    };
+
     return {
       uploads: new Map(),
       addUploads,
       processUpload,
       cancelUpload,
+      retryUpload,
     };
   })
 );

@@ -2,6 +2,7 @@ import { Indicator, Root } from '@radix-ui/react-progress';
 import { Download, ImageUp, Link2, RefreshCcw, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { type Upload, useUploads } from '../store/uploads';
+import { downloadUrl } from '../utils/download-url';
 import { formatBytes } from '../utils/format-bytes';
 import { Button } from './ui/button';
 
@@ -15,6 +16,7 @@ export function UploadWidgetUploadItem({
   uploadId,
 }: UploadWidgetUploadItemProps) {
   const cancelUploads = useUploads((store) => store.cancelUpload); // --- IGNORE ---
+  const retryUpload = useUploads((store) => store.retryUpload); // --- IGNORE ---
   const progress = Math.min(
     upload.compressedByteSize
       ? Math.round((upload.uploadByteSize / upload.compressedByteSize) * 100)
@@ -32,7 +34,7 @@ export function UploadWidgetUploadItem({
       <div className="flex flex-col gap-1">
         <span className="flex items-center gap-1 font-medium text-xs">
           <ImageUp className="size-3 text-zinc-300" strokeWidth={1.5} />
-          <span>{upload.name}</span>
+          <span className="max-w-[180px] truncate">{upload.name}</span>
         </span>
 
         <span className="flex items-center gap-1.5 text-xxs text-zinc-400">
@@ -75,16 +77,23 @@ export function UploadWidgetUploadItem({
         />
       </Root>
 
-      <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
+      <div className="absolute top-2 right-2 flex items-center gap-1">
         <Button
           aria-disabled={upload.status !== 'completed'}
           asChild
           size="icon-sm"
         >
-          <a download href={upload.remoteUrl} rel="noopener noreferrer">
-            <Download className="size-4" strokeWidth={1.5} />
-            <span className="sr-only">Download compressed image</span>
-          </a>
+          <Download
+            aria-disabled={!upload.remoteUrl}
+            className="size-4"
+            onClick={() => {
+              if (upload.remoteUrl) {
+                downloadUrl(upload.remoteUrl);
+              }
+            }}
+            strokeWidth={1.5}
+          />
+          <span className="sr-only">Download compressed image</span>
         </Button>
 
         <Button
@@ -101,6 +110,7 @@ export function UploadWidgetUploadItem({
 
         <Button
           disabled={!['error', 'canceled'].includes(upload.status)}
+          onClick={() => retryUpload(uploadId)}
           size="icon-sm"
         >
           <RefreshCcw className="size-4" strokeWidth={1.5} />
