@@ -20,7 +20,7 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      {/** biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+      {/** biome-ignore lint/a11y/noSvgWithoutTitle: default from radix component */}
       <svg className="-rotate-90 h-full w-full" viewBox={`0 0 ${size} ${size}`}>
         <circle
           className={`${circleColor} stroke-current`}

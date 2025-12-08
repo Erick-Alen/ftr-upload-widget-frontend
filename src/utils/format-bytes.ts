@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/nursery/noIncrementDecrement: <explanation> */
+/** biome-ignore-all lint/nursery/noIncrementDecrement: util function */
 export function formatBytes(bytes: number): string {
   if (bytes < 0) {
     throw new Error('Size in bytes cannot be negative');
