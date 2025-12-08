@@ -15,8 +15,10 @@ export function UploadWidgetUploadItem({
   uploadId,
 }: UploadWidgetUploadItemProps) {
   const cancelUploads = useUploads((store) => store.cancelUpload); // --- IGNORE ---
-  const progress = Math.round(
-    Math.min((upload.uploadByteSize / upload.originalByteSize) * 100, 100)
+  const progress = Math.min(
+    upload.compressedByteSize
+      ? Math.round((upload.uploadByteSize / upload.compressedByteSize) * 100)
+      : 0
   ); // --- IGNORE ---
   return (
     <motion.div
@@ -37,8 +39,16 @@ export function UploadWidgetUploadItem({
           <span className="line-through">{formatBytes(upload.file.size)}</span>
           <div className="size-1 rounded-full bg-zinc-700" />
           <span>
-            300KB
-            <span className="ml-1 text-green-400">-94%</span>
+            {formatBytes(upload.compressedByteSize || 0)}{' '}
+            <span className="ml-1 text-green-400">
+              -
+              {Math.round(
+                ((upload.file.size - (upload.compressedByteSize || 0)) /
+                  upload.file.size) *
+                  100
+              )}
+              %
+            </span>
           </span>
           <div className="size-1 rounded-full bg-zinc-700" />
           {/* {upload.status === 'completed' ? 'Completed' : 'Uploading...'} */}
@@ -66,12 +76,25 @@ export function UploadWidgetUploadItem({
       </Root>
 
       <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
-        <Button disabled={upload.status !== 'completed'} size="icon-sm">
-          <Download className="size-4" strokeWidth={1.5} />
-          <span className="sr-only">Download compressed image</span>
+        <Button
+          aria-disabled={upload.status !== 'completed'}
+          asChild
+          size="icon-sm"
+        >
+          <a download href={upload.remoteUrl} rel="noopener noreferrer">
+            <Download className="size-4" strokeWidth={1.5} />
+            <span className="sr-only">Download compressed image</span>
+          </a>
         </Button>
 
-        <Button disabled={upload.status !== 'completed'} size="icon-sm">
+        <Button
+          disabled={!upload.remoteUrl}
+          onClick={() =>
+            !!upload.remoteUrl &&
+            navigator.clipboard.writeText(upload.remoteUrl)
+          }
+          size="icon-sm"
+        >
           <Link2 className="size-4" strokeWidth={1.5} />
           <span className="sr-only">Copy remote URL</span>
         </Button>

@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/shallow';
 import { uploadFileToStorage } from '../http/upload-file-to-storage';
+import { compressImage } from '../utils/compress-image';
 export type Upload = {
   file: File;
   name: string;
@@ -11,6 +12,8 @@ export type Upload = {
   status: 'progress' | 'completed' | 'error' | 'canceled';
   uploadByteSize: number;
   originalByteSize: number;
+  compressedByteSize?: number;
+  remoteUrl?: string;
 };
 
 type UploadState = {
@@ -39,9 +42,20 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
         return;
       }
       try {
-        await uploadFileToStorage(
+        const compressedFile = await compressImage({
+          file: upload.file,
+          quality: 0.7,
+          maxHeight: 200,
+          maxWidth: 200,
+        });
+        updateUpload(uploadId, {
+          status: 'completed',
+          compressedByteSize: compressedFile.size,
+        });
+
+        const { url } = await uploadFileToStorage(
           {
-            file: upload.file,
+            file: compressedFile,
             onProgress: (byteSize) => {
               updateUpload(uploadId, { uploadByteSize: byteSize });
             },
@@ -52,7 +66,7 @@ export const useUploads = create<UploadState, [['zustand/immer', never]]>(
         );
         updateUpload(uploadId, {
           status: 'completed',
-          uploadByteSize: upload.originalByteSize,
+          remoteUrl: url,
         });
       } catch (error) {
         // if error was aborted by the user, it comes as cancelled error
@@ -126,8 +140,11 @@ export const usePendingUploads = () =>
         store.uploads.values()
       ).reduce(
         (acc, upload) => {
-          acc.totalBytes += upload.originalByteSize;
-          acc.uploaded += upload.uploadByteSize;
+          if (upload.compressedByteSize) {
+            acc.uploaded += upload.uploadByteSize;
+          }
+          acc.totalBytes +=
+            upload.compressedByteSize || upload.originalByteSize;
           return acc;
         },
         { totalBytes: 0, uploaded: 0 }
